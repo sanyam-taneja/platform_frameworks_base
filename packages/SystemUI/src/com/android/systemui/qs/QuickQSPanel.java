@@ -63,25 +63,23 @@ public class QuickQSPanel extends QSPanel {
 
 
     @Inject
-    public QuickQSPanel(
-            @Named(VIEW_CONTEXT) Context context,
-            AttributeSet attrs,
-            DumpManager dumpManager,
-            BroadcastDispatcher broadcastDispatcher,
-            QSLogger qsLogger,
-            MediaHost mediaHost,
-            UiEventLogger uiEventLogger
-    ) {
-        super(context, attrs, dumpManager, broadcastDispatcher, qsLogger, mediaHost, uiEventLogger);
-        sDefaultMaxTiles = getResources().getInteger(R.integer.quick_qs_panel_max_columns);
-        applyBottomMargin((View) mRegularTileLayout);
-    }
-
-    private void applyBottomMargin(View view) {
-        int margin = getResources().getDimensionPixelSize(R.dimen.qs_header_tile_margin_bottom);
-        MarginLayoutParams layoutParams = (MarginLayoutParams) view.getLayoutParams();
-        layoutParams.bottomMargin = margin;
-        view.setLayoutParams(layoutParams);
+    public QuickQSPanel(@Named(VIEW_CONTEXT) Context context, AttributeSet attrs,
+            DumpController dumpController) {
+        super(context, attrs, dumpController);
+        if (mFooter != null) {
+            removeView(mFooter.getView());
+        }
+        if (mTileLayout != null) {
+            for (int i = 0; i < mRecords.size(); i++) {
+                mTileLayout.removeTile(mRecords.get(i));
+            }
+            removeView((View) mTileLayout);
+        }
+        mDefaultMaxTiles = getResources().getInteger(R.integer.quick_qs_panel_max_columns);
+        mTileLayout = new HeaderTileLayout(context);
+        mTileLayout.setListening(mListening);
+        addView((View) mTileLayout, 0);
+        super.setPadding(0, 0, 0, 0);
     }
 
     @Override
@@ -181,10 +179,7 @@ public class QuickQSPanel extends QSPanel {
 
     @Override
     public void onTuningChanged(String key, String newValue) {
-        if (QS_SHOW_BRIGHTNESS.equals(key)) {
-            // No Brightness or Tooltip for you!
-            super.onTuningChanged(key, "0");
-        }
+        // Do nothing
     }
 
     @Override

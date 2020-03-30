@@ -1367,12 +1367,78 @@ public class StatusBar extends SystemUI implements DemoMode,
 
         mGutsManager.setNotificationActivityStarter(mNotificationActivityStarter);
 
-        mNotificationsController.initialize(
-                this,
-                mPresenter,
-                (NotificationListContainer) mStackScroller,
-                mNotificationActivityStarter,
-                mPresenter);
+        mEntryManager.setRowBinder(rowBinder);
+        rowBinder.setNotificationClicker(new NotificationClicker(
+                this, Dependency.get(BubbleController.class), mNotificationActivityStarter));
+
+        mGroupAlertTransferHelper.bind(mEntryManager, mGroupManager);
+        mNotificationListController.bind();
+    }
+
+    protected void getDependencies() {
+        // Icons
+        mIconController = Dependency.get(StatusBarIconController.class);
+        mLightBarController = Dependency.get(LightBarController.class);
+
+        // Keyguard
+        mKeyguardMonitor = Dependency.get(KeyguardMonitor.class);
+        mScreenLifecycle = Dependency.get(ScreenLifecycle.class);
+        mWakefulnessLifecycle = Dependency.get(WakefulnessLifecycle.class);
+
+        // Notifications
+        mEntryManager = Dependency.get(NotificationEntryManager.class);
+        mForegroundServiceController = Dependency.get(ForegroundServiceController.class);
+        mGroupAlertTransferHelper = Dependency.get(NotificationGroupAlertTransferHelper.class);
+        mGroupManager = Dependency.get(NotificationGroupManager.class);
+        mGutsManager = Dependency.get(NotificationGutsManager.class);
+        mLockscreenUserManager = Dependency.get(NotificationLockscreenUserManager.class);
+        mMediaManager = Dependency.get(NotificationMediaManager.class);
+        mNotificationInterruptionStateProvider =
+                Dependency.get(NotificationInterruptionStateProvider.class);
+        mNotificationListener = Dependency.get(NotificationListener.class);
+        mNotificationLogger = Dependency.get(NotificationLogger.class);
+        mRemoteInputManager = Dependency.get(NotificationRemoteInputManager.class);
+        mViewHierarchyManager = Dependency.get(NotificationViewHierarchyManager.class);
+        mVisualStabilityManager = Dependency.get(VisualStabilityManager.class);
+
+        // Policy
+        mBatteryController = Dependency.get(BatteryController.class);
+        mNetworkController = Dependency.get(NetworkController.class);
+        mZenController = Dependency.get(ZenModeController.class);
+
+        // Others
+        mAppOpsController = Dependency.get(AppOpsController.class);
+        mAssistManager = Dependency.get(AssistManager.class);
+        mBubbleController = Dependency.get(BubbleController.class);
+        mColorExtractor = Dependency.get(SysuiColorExtractor.class);
+        mNavigationBarController = Dependency.get(NavigationBarController.class);
+        mUserSwitcherController = Dependency.get(UserSwitcherController.class);
+        mVibratorHelper = Dependency.get(VibratorHelper.class);
+    }
+
+    protected void setUpQuickSettingsTilePanel() {
+        View container = mStatusBarWindow.findViewById(R.id.qs_frame);
+        if (container != null) {
+            FragmentHostManager fragmentHostManager = FragmentHostManager.get(container);
+            ExtensionFragmentListener.attachExtensonToFragment(container, QS.TAG, R.id.qs_frame,
+                    Dependency.get(ExtensionController.class)
+                            .newExtension(QS.class)
+                            .withPlugin(QS.class)
+                            .withDefault(this::createDefaultQSFragment)
+                            .build());
+            mBrightnessMirrorController = new BrightnessMirrorController(mContext, mStatusBarWindow,
+                    (visible) -> {
+                        mBrightnessMirrorVisible = visible;
+                        updateScrimController();
+                    });
+            fragmentHostManager.addTagListener(QS.TAG, (tag, f) -> {
+                QS qs = (QS) f;
+                if (qs instanceof QSFragment) {
+                    mQSPanel = ((QSFragment) qs).getQsPanel();
+                    ((QSFragment) qs).getQsFooter().setBrightnessMirror(mBrightnessMirrorController);
+                }
+            });
+        }
     }
 
     /**
