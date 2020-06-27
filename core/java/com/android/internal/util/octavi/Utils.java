@@ -18,6 +18,7 @@ package com.android.internal.util.octavi;
 
 import android.Manifest;
 import android.app.UiModeManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.om.IOverlayManager;
 import android.content.om.OverlayInfo;
@@ -147,6 +148,16 @@ public class Utils {
         if (mUiModeManager == null) return false;
         int mode = mUiModeManager.getNightMode();
         return (mode == UiModeManager.MODE_NIGHT_YES);
+    }
+
+    // Method to enable/disable package components
+    public static void setComponentState(Context context, String packageName,
+            String componentClassName, boolean enabled) {
+        PackageManager pm  = context.getApplicationContext().getPackageManager();
+        ComponentName componentName = new ComponentName(packageName, componentClassName);
+        int state = enabled ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED :
+                PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
+        pm.setComponentEnabledSetting(componentName, state, PackageManager.DONT_KILL_APP);
     }
 
     // Method to turn off the screen
