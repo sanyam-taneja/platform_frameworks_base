@@ -17,6 +17,7 @@
 package com.android.internal.util.octavi;
 
 import android.Manifest;
+import android.app.UiModeManager;
 import android.content.Context;
 import android.content.om.IOverlayManager;
 import android.content.om.OverlayInfo;
@@ -137,6 +138,15 @@ public class Utils {
     public static boolean isChineseLanguage() {
        return Resources.getSystem().getConfiguration().locale.getLanguage().startsWith(
                Locale.CHINESE.getLanguage());
+    }
+
+    // Method to detect whether the system dark theme is enabled or not
+    public static boolean isDarkTheme(Context context) {
+        UiModeManager mUiModeManager =
+                context.getSystemService(UiModeManager.class);
+        if (mUiModeManager == null) return false;
+        int mode = mUiModeManager.getNightMode();
+        return (mode == UiModeManager.MODE_NIGHT_YES);
     }
 
     // Method to turn off the screen
