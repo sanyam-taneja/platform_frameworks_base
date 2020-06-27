@@ -143,6 +143,17 @@ public class Utils {
         return ctx.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
     }
 
+    // Method to detect navigation bar is in use
+    public static boolean hasNavigationBar(Context context) {
+        boolean hasNavbar = false;
+        IWindowManager wm = WindowManagerGlobal.getWindowManagerService();
+        try {
+            hasNavbar = wm.hasNavigationBar(context.getDisplayId());
+        } catch (RemoteException ex) {
+        }
+        return hasNavbar;
+    }
+
     public static void toggleCameraFlash() {
         FireActions.toggleCameraFlash();
     }
